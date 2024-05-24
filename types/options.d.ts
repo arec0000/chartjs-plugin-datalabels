@@ -15,6 +15,17 @@ type Font = {
   weight?: 'normal' | 'bold' | 'bolder' | 'lighter' | number;
 };
 
+type TextDecoration = {
+  placement?: 'underline' | 'overline' | 'line-through';
+  color?: Color;
+  thickness?: number;
+  length?: number | ((textWidth: number) => number);
+  offset?: number;
+  dash?: number[];
+  dashOffset?: number;
+  lineCap?: CanvasLineCap;
+};
+
 type Padding = number | {
   top?: number;
   right?: number;
@@ -84,6 +95,30 @@ interface LabelOptions {
    * @since 0.1.0
    */
   borderWidth?: Indexable<number> | Scriptable<number>;
+
+  /**
+   * The dash pattern of the surrounding frame.
+   * Value follows the format used by the `setLineDash()` method of the Canvas 2D API.
+   * @default null (solid border)
+   * @since 2.3.0
+   */
+  borderDash?: Exclude<Indexable<number[] | undefined> | Scriptable<(number[] | undefined)[]>, number[]>;
+
+  /**
+   * The border dash offset for the surrounding frame.
+   * Similar to the `lineDashOffset` property of the Canvas 2D API.
+   * @default 0 (no border dash offset)
+   * @since 2.3.0
+   */
+  borderDashOffset?: Indexable<number> | Scriptable<number>;
+
+  /**
+   * The line cap style for the surrounding frame.
+   * Similar to the `lineCap` property of the Canvas 2D API.
+   * @default 'butt' (ends squared off)
+   * @since 2.3.0
+   */
+  borderCap?: Indexable<CanvasLineCap> | Scriptable<CanvasLineCap>;
 
   /**
    * When `true`, the anchor position is calculated based on the visible
@@ -227,6 +262,13 @@ interface LabelOptions {
    * @since 0.5.0
    */
   textShadowColor?: Indexable<Color> | Scriptable<Color>;
+
+  /**
+   * The text decoration options.
+   * @default Chart.defaults.textDecoration.*
+   * @since 2.3.0
+   */
+  textDecoration?: Indexable<TextDecoration> | Scriptable<TextDecoration>;
 }
 
 export interface Options extends LabelOptions {

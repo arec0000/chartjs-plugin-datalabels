@@ -1,6 +1,7 @@
 import {ArcElement, BarElement, defaults, PointElement} from 'chart.js';
 import {
   callback as callbackHelper,
+  isArray,
   isNullOrUndef,
   merge,
   resolve,
@@ -13,6 +14,18 @@ import utils from './utils';
 import positioners from './positioners';
 
 var rasterize = utils.rasterize;
+
+function getAlignedX(x, w, align) {
+  if (align === 'center') {
+    return x + w / 2;
+  }
+
+  if (align === 'end' || align === 'right') {
+    return x + w;
+  }
+
+  return x;
+}
 
 function boundingRects(model) {
   var borderWidth = model.borderWidth || 0;
@@ -30,10 +43,9 @@ function boundingRects(model) {
       h: th + padding.height + borderWidth * 2
     },
     text: {
-      x: tx,
-      y: ty,
-      w: tw,
-      h: th
+      x: getAlignedX(tx, tw, model.textAlign),
+      y: ty + model.font.lineHeight / 2,
+      w: tw
     }
   };
 }
@@ -131,28 +143,87 @@ function drawFrame(ctx, rect, model) {
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
     ctx.lineJoin = 'miter';
+
+    if (model.borderDash && isArray(model.borderDash)) {
+      ctx.setLineDash(model.borderDash);
+      ctx.lineDashOffset = model.borderDashOffset;
+      ctx.lineCap = model.borderCap;
+    }
+
     ctx.stroke();
+
+    ctx.setLineDash([]);
   }
 }
 
-function textGeometry(rect, align, font) {
-  var h = font.lineHeight;
+function textDecorationGeometry(rect, fontSize, textDecoration) {
   var w = rect.w;
   var x = rect.x;
-  var y = rect.y + h / 2;
+  var y = rect.y + textDecoration.offset;
 
-  if (align === 'center') {
-    x += w / 2;
-  } else if (align === 'end' || align === 'right') {
-    x += w;
+  var placement = textDecoration.placement;
+  var thickness = textDecoration.thickness;
+  var length = textDecoration.length;
+
+  if (typeof length === 'number') {
+    x += (w - (w = length)) / 2;
+  } else if (typeof length === 'function') {
+    x += (w - (w = length(w))) / 2;
+  }
+
+  if (placement === 'underline') {
+    y += (fontSize + thickness) / 2;
+  } else if (placement === 'overline') {
+    y -= (fontSize + thickness) / 2;
   }
 
   return {
-    h: h,
     w: w,
     x: x,
     y: y
   };
+}
+
+function drawTextDecoration(ctx, lines, rect, model) {
+  var textDecoration = model.textDecoration;
+  var font = model.font;
+  var color = textDecoration.color;
+  var ilen = lines.length;
+  var i;
+
+  if (!textDecoration.placement) {
+    return;
+  }
+
+  if (!color) {
+    color = model.color;
+  }
+
+  ctx.lineWidth = textDecoration.thickness;
+  ctx.strokeStyle = color;
+
+  if (textDecoration.dash) {
+    ctx.setLineDash(textDecoration.dash);
+    ctx.lineDashOffset = textDecoration.dashOffset;
+    ctx.lineCap = textDecoration.lineCap;
+  }
+
+  rect = textDecorationGeometry(rect, font.size, textDecoration);
+
+  var x = rasterize(rect.x);
+  var w = rasterize(rect.w);
+
+  ctx.beginPath();
+
+  for (i = 0, ilen = lines.length; i < ilen; ++i) {
+    var y = rasterize(rect.y + font.lineHeight * i);
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+  }
+
+  ctx.stroke();
+
+  ctx.setLineDash([]);
 }
 
 function drawTextLine(ctx, text, cfg) {
@@ -196,9 +267,6 @@ function drawText(ctx, lines, rect, model) {
     return;
   }
 
-  // Adjust coordinates based on text alignment and line height
-  rect = textGeometry(rect, align, font);
-
   ctx.font = font.string;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
@@ -220,7 +288,7 @@ function drawText(ctx, lines, rect, model) {
       filled: filled,
       w: rect.w,
       x: rect.x,
-      y: rect.y + rect.h * i
+      y: rect.y + font.lineHeight * i
     });
   }
 }
@@ -254,6 +322,9 @@ merge(Label.prototype, {
       borderColor: resolve([config.borderColor, null], context, index),
       borderRadius: resolve([config.borderRadius, 0], context, index),
       borderWidth: resolve([config.borderWidth, 0], context, index),
+      borderDash: resolve([config.borderDash, null], context, index),
+      borderDashOffset: resolve([config.borderDashOffset, 0], context, index),
+      borderCap: resolve([config.borderCap, 'butt'], context, index),
       clamp: resolve([config.clamp, false], context, index),
       clip: resolve([config.clip, false], context, index),
       color: color,
@@ -271,7 +342,8 @@ merge(Label.prototype, {
       textShadowBlur: resolve([config.textShadowBlur, 0], context, index),
       textShadowColor: resolve([config.textShadowColor, color], context, index),
       textStrokeColor: resolve([config.textStrokeColor, color], context, index),
-      textStrokeWidth: resolve([config.textStrokeWidth, 0], context, index)
+      textStrokeWidth: resolve([config.textStrokeWidth, 0], context, index),
+      textDecoration: resolve([config.textDecoration, {}], context, index)
     };
   },
 
@@ -347,6 +419,7 @@ merge(Label.prototype, {
     ctx.rotate(model.rotation);
 
     drawFrame(ctx, rects.frame, model);
+    drawTextDecoration(ctx, model.lines, rects.text, model);
     drawText(ctx, model.lines, rects.text, model);
 
     ctx.restore();

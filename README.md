@@ -9,6 +9,29 @@
   <a href="https://github.com/chartjs/awesome"><img src="https://awesome.re/badge-flat2.svg" alt="Awesome"></a>
 </p>
 
+## Important Notice
+
+**This is a fork of the original package and it's not supported by the official developers of [chartjs-plugin-datalabels.](https://www.npmjs.com/package/chartjs-plugin-datalabels)**
+
+#### New features:
+- Border style customization:
+  - `borderDash` — dash pattern, similar to the [`setLineDash()`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash) method of the Canvas 2D API
+  - `borderDashOffset` — adjust the offset of the dash pattern, similar to the [`lineDashOffset`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineDashOffset) property of the Canvas 2D API
+  - `borderCap` — similar to the [`lineCap`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineCap) property of the Canvas 2D API
+- Text decoration, you can add flexibly customizable underlines, overlines, or strikethrough lines:
+  - `placement` — position of the line ('underline', 'overline', 'line-through')
+  - `color` (defaults to the datalabel color)
+  - `thickness`
+  - `length` (you can provide a function that uses the text width to calculate the length)
+  - `offset` — vertical offset in px
+  - `dash` — dash pattern, similar to the [`setLineDash()`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash) method of the Canvas 2D API
+  - `dashOffset` — adjust the offset of the dash pattern, similar to the [`lineDashOffset`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineDashOffset) property of the Canvas 2D API
+  - `lineCap` — similar to the [`lineCap`](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineCap) property of the Canvas 2D API
+
+New features are still being tested and may not be fully functional yet.
+
+I plan to submit these changes as a pull request to the official chartjs-plugin-datalabels package in the future.
+
 ## Overview
 
 Highly customizable [Chart.js](https://www.chartjs.org/) plugin that displays labels on data for any type of charts.

@@ -36,6 +36,9 @@ export default {
   borderColor: null,
   borderRadius: 0,
   borderWidth: 0,
+  borderDash: null,
+  borderDashOffset: 0,
+  borderCap: 'butt',
   clamp: false,
   clip: false,
   color: undefined,
@@ -63,5 +66,15 @@ export default {
   textStrokeColor: undefined,
   textStrokeWidth: 0,
   textShadowBlur: 0,
-  textShadowColor: undefined
+  textShadowColor: undefined,
+  textDecoration: {
+    placement: undefined,
+    color: undefined,
+    thickness: 1,
+    length: undefined,
+    offset: 0,
+    dash: null,
+    dashOffset: 0,
+    lineCap: 'butt'
+  }
 };
